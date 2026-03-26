@@ -1,0 +1,172 @@
+/* 🌌 CORE STYLES */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    text-align: center;
+    background: radial-gradient(circle at top, #020617, #000);
+    overflow: hidden; /* Prevents whole page bounce */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+canvas { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    z-index: -1; 
+}
+
+/* 🖥️ UI OVERLAYS (Menu & Victory) */
+#menu, .victory-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(15px);
+    z-index: 100;
+    padding: 20px; /* Space for mobile edges */
+}
+
+.menu-box, .victory-box {
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh; /* Prevents overflow on short phones */
+    overflow-y: auto; /* Makes menu scrollable if too tall */
+    padding: 25px;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* 🏆 VICTORY SPECIFICS */
+.victory-box { animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.trophy { font-size: 50px; animation: bounce 2s infinite; }
+.victory-btns { display: flex; flex-direction: column; gap: 10px; }
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+/* 💡 TEXT & EFFECTS */
+h1, h2 { color: #38bdf8; animation: glow 2s infinite; margin: 5px 0; }
+p { margin: 5px 0; font-size: 0.9rem; opacity: 0.7; text-transform: uppercase; }
+
+@keyframes glow {
+    0%, 100% { text-shadow: 0 0 10px #38bdf8; }
+    50% { text-shadow: 0 0 25px #38bdf8; }
+}
+
+/* 🕹️ CONTROLS */
+input, .btn-group button, .level-btn {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+
+input { cursor: text; background: rgba(0,0,0,0.2); }
+
+.btn-group { display: flex; gap: 8px; }
+.btn-group button.active, .level-btn.active {
+    background: #38bdf8;
+    color: black;
+    box-shadow: 0 0 15px #38bdf8;
+    border-color: #38bdf8;
+}
+
+#levels {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+}
+
+.start-btn {
+    padding: 15px;
+    border: none;
+    border-radius: 15px;
+    background: #38bdf8;
+    color: black;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4);
+}
+
+.secondary-btn {
+    background: transparent;
+    color: #38bdf8;
+    border: 1px solid #38bdf8;
+    padding: 12px;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+/* 🃏 GAME GRID & CARDS */
+#stats { margin: 15px 0 5px; font-size: 1.1rem; }
+#turn { color: #38bdf8; font-weight: bold; min-height: 1.2rem; margin-bottom: 10px;}
+
+.grid { 
+    display: grid; 
+    gap: 8px; 
+    justify-content: center; 
+    padding-bottom: 30px; 
+    margin: 0 auto;
+}
+
+/* This makes cards shrink perfectly on small phones */
+.card { 
+    width: min(70px, 18vw); 
+    height: min(70px, 18vw); 
+    perspective: 1000px; 
+}
+
+.inner { width: 100%; height: 100%; transform-style: preserve-3d; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+.flipped .inner { transform: rotateY(180deg); }
+
+.front, .back {
+    position: absolute; width: 100%; height: 100%; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; backface-visibility: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.front { background: #1e293b; }
+.back { background: #38bdf8; color: black; transform: rotateY(180deg); font-size: min(30px, 8vw); }
+
+/* Custom Scrollbar for Level Grid */
+#levels::-webkit-scrollbar { width: 5px; }
+#levels::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 10px; }
+
+@media(max-width: 500px) { 
+    h1 { font-size: 1.8rem; }
+    .menu-box { padding: 20px; gap: 12px; }
+}    position: absolute; width: 100%; height: 100%; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; backface-visibility: hidden;
+}
+
+.front { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); }
+.back { background: #38bdf8; color: black; transform: rotateY(180deg); font-size: 30px; }
+
+@media(max-width: 500px) { h1 { font-size: 28px; } }
