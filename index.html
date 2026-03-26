@@ -1,216 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MindFlip</title>
-
-<style>
-body{
-    margin:0;
-    font-family:sans-serif;
-    color:white;
-    text-align:center;
-    background:linear-gradient(#020617,#000);
-    overflow:hidden;
-}
-
-/* 🌌 BACKGROUND */
-canvas{
-    position:fixed;
-    top:0;
-    left:0;
-    z-index:-1;
-}
-
-/* MENU */
-#menu{
-    position:fixed;
-    width:100%;
-    height:100%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:rgba(0,0,0,0.6);
-    backdrop-filter:blur(10px);
-}
-
-.menu-box{
-    width:90%;
-    max-width:400px;
-    padding:25px;
-    border-radius:20px;
-    background:rgba(255,255,255,0.05);
-    backdrop-filter:blur(15px);
-    box-shadow:0 0 40px rgba(56,189,248,0.3);
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-}
-
-/* TITLE */
-h1{
-    color:#38bdf8;
-    animation:glow 2s infinite;
-}
-
-@keyframes glow{
-    0%{text-shadow:0 0 10px #38bdf8;}
-    50%{text-shadow:0 0 30px #38bdf8;}
-    100%{text-shadow:0 0 10px #38bdf8;}
-}
-
-/* INPUT */
-input{
-    padding:10px;
-    border-radius:10px;
-    border:none;
-    background:rgba(255,255,255,0.1);
-    color:white;
-}
-
-/* BUTTON GROUP */
-.btn-group{
-    display:flex;
-    gap:10px;
-}
-
-.btn-group button{
-    flex:1;
-    padding:10px;
-    border:none;
-    border-radius:10px;
-    background:rgba(255,255,255,0.1);
-    color:white;
-    cursor:pointer;
-    transition:0.3s;
-}
-
-.btn-group button.active{
-    background:#38bdf8;
-    color:black;
-    box-shadow:0 0 15px #38bdf8;
-}
-
-/* LEVEL GRID */
-#levels{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:8px;
-    max-height:150px;
-    overflow-y:auto;
-}
-
-.level-btn{
-    padding:8px;
-    border:none;
-    border-radius:8px;
-    background:rgba(255,255,255,0.1);
-    color:white;
-}
-
-.level-btn.active{
-    background:#38bdf8;
-    color:black;
-    box-shadow:0 0 10px #38bdf8;
-}
-
-/* START BUTTON */
-.start-btn{
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    background:#38bdf8;
-    color:black;
-    font-weight:bold;
-    box-shadow:0 0 20px #38bdf8;
-    cursor:pointer;
-}
-
-/* GAME */
-.grid{
-    display:grid;
-    gap:10px;
-    justify-content:center;
-    margin-top:20px;
-}
-
-.card{
-    width:70px;
-    height:70px;
-    perspective:1000px;
-}
-
-.inner{
-    width:100%;
-    height:100%;
-    transform-style:preserve-3d;
-    transition:0.5s;
-}
-
-.flipped .inner{
-    transform:rotateY(180deg);
-}
-
-.front,.back{
-    position:absolute;
-    width:70px;
-    height:70px;
-    border-radius:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    backface-visibility:hidden;
-}
-
-.front{
-    background:rgba(30,41,59,0.8);
-}
-
-.back{
-    background:#38bdf8;
-    color:black;
-    transform:rotateY(180deg);
-}
-
-/* MOBILE */
-@media(max-width:500px){
-    h1{font-size:28px;}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MindFlip | Space Memory</title>
+    <link rel="stylesheet" href="global.css">
 </head>
-
 <body>
 
 <canvas id="bg"></canvas>
 
-<!-- MENU -->
 <div id="menu">
-<div class="menu-box">
-
-<h1>🧠 MindFlip</h1>
-
-<p>Mode</p>
-<div class="btn-group" id="modeSelect">
-<button class="active" onclick="selectMode('single',this)">Single</button>
-<button onclick="selectMode('multi',this)">Multi</button>
+    <div class="menu-box">
+        <h1>🧠 MindFlip</h1>
+        
+        <p>Game Mode</p>
+        <div class="btn-group" id="modeSelect">
+            <button class="active" onclick="selectMode('single',this)">Single</button>
+            <button onclick="selectMode('multi',this)">Multi</button>
+        </div>
+        
+        <input id="p1" placeholder="Player 1 Name">
+        <input id="p2" placeholder="Player 2 Name" style="display:none;">
+        
+        <p>Difficulty</p>
+        <div class="btn-group" id="diffSelect">
+            <button class="active" onclick="selectDiff(4,this)">Easy</button>
+            <button onclick="selectDiff(6,this)">Medium</button>
+            <button onclick="selectDiff(8,this)">Hard</button>
+        </div>
+        
+        <p>Select Level</p>
+        <div id="levels"></div>
+        
+        <button class="start-btn" onclick="startGame()">▶ Start Mission</button>
+    </div>
 </div>
 
-<input id="p1" placeholder="Player 1">
-<input id="p2" placeholder="Player 2">
-
-<p>Difficulty</p>
-<div class="btn-group" id="diffSelect">
-<button class="active" onclick="selectDiff(4,this)">Easy</button>
-<button onclick="selectDiff(6,this)">Medium</button>
-<button onclick="selectDiff(8,this)">Hard</button>
-</div>
-
-<p>Level</p>
-<div id="levels"></div>
-
-<button class="start-btn" onclick="startGame()">▶ Start Game</button>
-
-</div>
+<div id="victory-screen" class="victory-overlay" style="display:none;">
+    <div class="victory-box">
+        <div class="trophy">🏆</div>
+        <h2 id="winner-display">Winner!</h2>
+        <div id="record-msg" style="color:#facc15; font-weight:bold; margin-bottom:10px; font-size:1.1rem;"></div>
+        
+        <div class="victory-btns">
+            <button class="start-btn" onclick="restartLevel()">🔄 Play Again</button>
+            <button class="secondary-btn" onclick="backToMenu()">🏠 Main Menu</button>
+        </div>
+    </div>
 </div>
 
 <h3 id="stats"></h3>
@@ -218,181 +55,212 @@ input{
 <div class="grid" id="grid"></div>
 
 <script>
+/** 🌌 BACKGROUND ANIMATION **/
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+let stars = [];
 
-// 🌌 BACKGROUND
-const canvas=document.getElementById("bg");
-const ctx=canvas.getContext("2d");
-canvas.width=innerWidth;
-canvas.height=innerHeight;
-
-let stars=[];
-for(let i=0;i<120;i++){
-    stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height});
+function initBG() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    stars = [];
+    for(let i=0; i<120; i++){
+        stars.push({
+            x: Math.random() * canvas.width, 
+            y: Math.random() * canvas.height, 
+            size: Math.random() * 2
+        });
+    }
 }
 
 function animateBG(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    stars.forEach(s=>{
-        ctx.fillStyle="white";
-        ctx.fillRect(s.x,s.y,2,2);
-        s.y+=0.2;
-        if(s.y>canvas.height)s.y=0;
+    ctx.fillStyle = "white";
+    stars.forEach(s => {
+        ctx.fillRect(s.x, s.y, s.size, s.size);
+        s.y += 0.2;
+        if(s.y > canvas.height) s.y = 0;
     });
     requestAnimationFrame(animateBG);
 }
+initBG();
 animateBG();
+window.addEventListener('resize', initBG);
 
-// 🎮 GAME DATA
-const symbols=["🚀","👽","🌕","🛸","⭐","🌌","☄️","🪐"];
-
-let cards=[],flipped=[];
+/** 🎮 GAME STATE & CONFIG **/
+const symbols = ["🚀","👽","🌕","🛸","⭐","🌌","☄️","🪐","🤖","📡","🛰️","🔭"];
+let cards=[], flipped=[];
 let players=["P1","P2"];
 let scores=[0,0];
 let turn=0;
 let mode="single";
 let difficulty=4;
-let selectedLevel=0;
+let selectedLevel=1;
+let lockBoard = false; // Prevents "fast-click" bugs
 
-// BUTTON LOGIC
-function selectMode(m,btn){
-    mode=m;
-    document.querySelectorAll("#modeSelect button").forEach(b=>b.classList.remove("active"));
+// Toggle Mode (Single vs Multi)
+function selectMode(m, btn){
+    mode = m;
+    document.querySelectorAll("#modeSelect button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    // Show/Hide P2 input based on mode
+    document.getElementById("p2").style.display = (m === 'multi') ? "block" : "none";
+}
+
+// Set Difficulty
+function selectDiff(d, btn){
+    difficulty = d;
+    document.querySelectorAll("#diffSelect button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 }
 
-function selectDiff(d,btn){
-    difficulty=d;
-    document.querySelectorAll("#diffSelect button").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-}
-
-// LEVEL GRID
-const levelContainer=document.getElementById("levels");
-
-for(let i=1;i<=40;i++){
-    let btn=document.createElement("button");
-    btn.innerText=i;
-    btn.className="level-btn";
-
-    btn.onclick=()=>{
-        selectedLevel=i-1;
-        document.querySelectorAll(".level-btn").forEach(b=>b.classList.remove("active"));
+// Generate 40 Levels
+const levelContainer = document.getElementById("levels");
+for(let i=1; i<=40; i++){
+    let btn = document.createElement("button");
+    btn.innerText = i;
+    btn.className = "level-btn" + (i === 1 ? " active" : "");
+    btn.onclick = () => {
+        selectedLevel = i;
+        document.querySelectorAll(".level-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
     };
-
-    if(i===1) btn.classList.add("active");
-
     levelContainer.appendChild(btn);
 }
 
-// START
+/** 🕹️ GAME ENGINE **/
 function startGame(){
-    document.getElementById("menu").style.display="none";
-
-    players[0]=document.getElementById("p1").value||"Player 1";
-    players[1]=document.getElementById("p2").value||"Player 2";
-
-    scores=[0,0];
-    turn=0;
-
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("victory-screen").style.display = "none";
+    
+    // Set Player Names
+    players[0] = document.getElementById("p1").value || "Player 1";
+    players[1] = document.getElementById("p2").value || "Player 2";
+    
+    scores = [0, 0];
+    turn = 0;
     loadGame();
 }
 
-// LOAD GAME
 function loadGame(){
-    let size=difficulty;
+    let size = difficulty;
+    // Automatic difficulty scaling based on level progress
+    if(selectedLevel > 10 && size < 6) size = 6;
+    if(selectedLevel > 20 && size < 8) size = 8;
 
-    if(selectedLevel>10) size=6;
-    if(selectedLevel>20) size=8;
+    // Use responsive grid sizing (70px max, 18% of screen min)
+    const grid = document.getElementById("grid");
+    grid.style.gridTemplateColumns = `repeat(${size}, min(70px, 18vw))`;
 
-    document.getElementById("grid").style.gridTemplateColumns=
-    `repeat(${size},70px)`;
+    let pairCount = (size * size) / 2;
+    let selectedSymbols = symbols.slice(0, pairCount);
+    
+    // Shuffle cards
+    cards = [...selectedSymbols, ...selectedSymbols].sort(() => Math.random() - 0.5);
 
-    let selected=symbols.slice(0,(size*size)/2);
-    cards=[...selected,...selected].sort(()=>Math.random()-0.5);
-
-    let grid=document.getElementById("grid");
-    grid.innerHTML="";
-
-    cards.forEach(sym=>{
-        let card=document.createElement("div");
-        card.className="card";
-
-        card.innerHTML=`
-        <div class="inner">
-            <div class="front"></div>
-            <div class="back">${sym}</div>
-        </div>`;
-
-        card.onclick=()=>flip(card,sym);
+    grid.innerHTML = "";
+    cards.forEach(sym => {
+        let card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<div class="inner"><div class="front"></div><div class="back">${sym}</div></div>`;
+        card.onclick = () => flip(card, sym);
         grid.appendChild(card);
     });
-
     updateUI();
 }
 
-// FLIP
-function flip(card,sym){
-    if(flipped.length==2 || card.classList.contains("flipped")) return;
+function flip(card, sym){
+    if(lockBoard || card.classList.contains("flipped")) return;
 
     card.classList.add("flipped");
-    flipped.push({card,sym});
+    flipped.push({card, sym});
 
-    if(flipped.length==2){
-        setTimeout(check,600);
+    if(flipped.length === 2){
+        lockBoard = true; 
+        setTimeout(checkMatch, 600);
     }
 }
 
-// CHECK
-function check(){
-    let[a,b]=flipped;
-
-    if(a.sym===b.sym){
+function checkMatch(){
+    let [a, b] = flipped;
+    if(a.sym === b.sym){
         scores[turn]++;
-        flipped=[];
-
-        if(document.querySelectorAll(".flipped").length===cards.length){
-            endGame();
-        }
-
-    }else{
-        a.card.classList.remove("flipped");
-        b.card.classList.remove("flipped");
-        flipped=[];
-
-        if(mode==="multi"){
-            turn = turn===0 ? 1 : 0;
-        }
+        flipped = [];
+        lockBoard = false;
+        // Check for Win Condition
+        if(document.querySelectorAll(".flipped").length === cards.length) endGame();
+    } else {
+        setTimeout(() => {
+            a.card.classList.remove("flipped");
+            b.card.classList.remove("flipped");
+            flipped = [];
+            lockBoard = false;
+            if(mode === "multi") turn = (turn === 0) ? 1 : 0;
+            updateUI();
+        }, 400);
     }
-
     updateUI();
 }
 
-// END
-function endGame(){
-    let winner = mode==="single" ? players[0] :
-        scores[0]>scores[1]?players[0]:
-        scores[1]>scores[0]?players[1]:"Draw";
-
-    setTimeout(()=>alert("🏆 Winner: "+winner),300);
+/** 📈 DATA PERSISTENCE (Local Storage) **/
+function getHighScoreKey() {
+    return `mindflip_score_d${difficulty}_l${selectedLevel}`;
 }
 
-// UI
-function updateUI(){
-    if(mode==="multi"){
-        document.getElementById("turn").innerText=
-        players[turn]+"'s Turn";
+function endGame(){
+    let winner = mode === "single" ? players[0] :
+        scores[0] > scores[1] ? players[0] :
+        scores[1] > scores[0] ? players[1] : "Draw";
 
-        document.getElementById("stats").innerText=
-        `${players[0]}: ${scores[0]} | ${players[1]}: ${scores[1]}`;
-    }else{
-        document.getElementById("turn").innerText="";
-        document.getElementById("stats").innerText=
-        `${players[0]} Score: ${scores[0]}`;
+    // Track High Scores in Single Player
+    let isNewRecord = false;
+    if(mode === "single"){
+        let key = getHighScoreKey();
+        let prevBest = localStorage.getItem(key) || 0;
+        if(scores[0] > prevBest){
+            localStorage.setItem(key, scores[0]);
+            isNewRecord = true;
+        }
+    }
+
+    setTimeout(() => {
+        const vicScreen = document.getElementById("victory-screen");
+        const winText = document.getElementById("winner-display");
+        const recordMsg = document.getElementById("record-msg");
+        
+        winText.innerText = winner === "Draw" ? "🤝 It's a Draw!" : "🏆 " + winner + " Wins!";
+        recordMsg.innerText = isNewRecord ? "⭐ NEW PERSONAL BEST! ⭐" : "";
+        vicScreen.style.display = "flex";
+    }, 500);
+}
+
+function restartLevel(){
+    document.getElementById("victory-screen").style.display = "none";
+    scores = [0, 0];
+    turn = 0;
+    loadGame();
+}
+
+function backToMenu(){
+    document.getElementById("victory-screen").style.display = "none";
+    document.getElementById("menu").style.display = "flex";
+    document.getElementById("grid").innerHTML = "";
+    document.getElementById("stats").innerHTML = "";
+}
+
+function updateUI(){
+    const stats = document.getElementById("stats");
+    const turnDiv = document.getElementById("turn");
+
+    if(mode === "multi"){
+        turnDiv.innerText = players[turn] + "'s Turn";
+        stats.innerText = `${players[0]}: ${scores[0]} | ${players[1]}: ${scores[1]}`;
+    } else {
+        let best = localStorage.getItem(getHighScoreKey()) || 0;
+        turnDiv.innerText = "";
+        stats.innerHTML = `Score: ${scores[0]} <span style="opacity:0.4; font-size:0.85rem; margin-left:12px;">Best: ${best}</span>`;
     }
 }
-
 </script>
-
 </body>
-</html>
+    </html>
