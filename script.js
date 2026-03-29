@@ -1,9 +1,7 @@
-/** * 🌌 MINDFLIP CORE ENGINE
- * Asset-Based Sound Version (MP3)
- */
+// ====================== MINDFLIP - script.js ======================
 
-// --- GLOBAL STATE ---
-const symbols = ["🚀", "👽", "🌕", "🛸", "⭐", "🌌", "☄️", "🪐", "🤖", "📡", "🛰️", "🔭"];
+const symbols = ["🚀","👽","🌕","🛸","⭐","🌌","☄️","🪐","🤖","📡","🛰️","🔭"];
+
 let cards = [], flipped = [];
 let players = ["P1", "P2"];
 let scores = [0, 0];
@@ -13,24 +11,195 @@ let difficulty = 4;
 let selectedLevel = 1;
 let lockBoard = false;
 
-// --- 🔊 MP3 SOUND ENGINE ---
-// Assumes files are in the same folder as script.js or in an /assets folder.
-// If you put them in a folder, change the paths below to 'assets/flip.mp3', etc.
-const sounds = {
-    flip: new Audio('flip.mp3'),
-    match: new Audio('match.mp3'),
-    wrong: new Audio('wrong.mp3'),
-    win: new Audio('win.mp3')
-};
+// ====================== USER SYSTEM (JSON Style) ======================
+let usersDB = [];
+let currentUser = null;
 
-function playSound(name) {
-    if (sounds[name]) {
-        sounds[name].currentTime = 0; // Reset to start for rapid clicks
-        sounds[name].play().catch(e => console.log("Audio waiting for interaction..."));
+function loadUsersFromStorage() {
+    const saved = localStorage.getItem('mindflip_users');
+    if (saved) {
+        usersDB = JSON.parse(saved);
+    } else {
+        // First time: Load sample from knowledge_base.json style
+        usersDB = [
+            {
+                "username": "spacecadet",
+                "password": "123456",
+                "email": "cadet@mindflip.space",
+                "joined": "2026-03-01",
+                "highscores": {}
+            }
+        ];
+        saveUsersDB();
     }
 }
 
-// --- 🌌 BACKGROUND ANIMATION ---
+const savedUsername = localStorage.getItem('mindflip_current_user');
+if (savedUsername) {
+    currentUser = usersDB.find(u => u.username === savedUsername);
+}
+
+function saveUsersDB() {
+    localStorage.setItem('mindflip_users', JSON.stringify(usersDB));
+}
+
+function getHighScoreKey() {
+    return `mindflip_best_d${difficulty}_l${selectedLevel}`;
+}
+
+function getBestScore() {
+    const key = getHighScoreKey();
+    if (currentUser && currentUser.highscores) {
+        return currentUser.highscores[key] || 0;
+    }
+    return parseInt(localStorage.getItem(key)) || 0;
+}
+
+function saveBestScore(newScore) {
+    const key = getHighScoreKey();
+    if (currentUser && currentUser.highscores) {
+        if (newScore > (currentUser.highscores[key] || 0)) {
+            currentUser.highscores[key] = newScore;
+            saveUsersDB();
+        }
+        return;
+    }
+    const prev = parseInt(localStorage.getItem(key)) || 0;
+    if (newScore > prev) {
+        localStorage.setItem(key, newScore);
+    }
+}
+
+// ====================== MUSIC ======================
+let menuMusic, winMusic;
+let isMuted = false;
+
+function initMusic() {
+    menuMusic = document.getElementById('menuMusic');
+    winMusic = document.getElementById('winMusic');
+}
+
+function stopAllMusic() {
+    if (menuMusic) menuMusic.pause();
+    if (winMusic) winMusic.pause();
+}
+
+function playMenuMusic() {
+    stopAllMusic();
+    if (!isMuted && menuMusic) menuMusic.play().catch(() => {});
+}
+
+function playWinMusic() {
+    stopAllMusic();
+    if (!isMuted && winMusic) winMusic.play().catch(() => {});
+}
+
+window.toggleMusic = () => {
+    isMuted = !isMuted;
+    document.getElementById('music-btn').textContent = isMuted ? '🔇' : '🎵';
+    if (isMuted) stopAllMusic();
+    else {
+        if (document.getElementById('menu').style.display !== 'none') playMenuMusic();
+        if (document.getElementById('victory-screen').style.display === 'flex') playWinMusic();
+    }
+};
+
+// ====================== AUTH SYSTEM ======================
+function renderAuthBar() {
+    const container = document.getElementById('auth-bar-container');
+    if (currentUser) {
+        container.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,240,255,0.15);padding:10px 15px;border-radius:8px;color:#00f0ff;font-weight:bold;">
+                <span>👤 ${currentUser.username}</span>
+                <button onclick="logout()" style="background:#ff0066;color:white;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;">Logout</button>
+            </div>`;
+    } else {
+        container.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.08);padding:10px 15px;border-radius:8px;">
+                <span style="color:#aaa;">Guest Pilot</span>
+                <div>
+                    <button onclick="showAuthModal('login')" style="margin-right:8px;background:#00f0ff;color:#000;border:none;padding:6px 14px;border-radius:6px;">Sign In</button>
+                    <button onclick="showAuthModal('signup')" style="background:#ff00aa;color:white;border:none;padding:6px 14px;border-radius:6px;">Sign Up</button>
+                </div>
+            </div>`;
+    }
+}
+
+window.showAuthModal = (authMode) => {
+    const modal = document.getElementById('auth-screen');
+    document.getElementById('auth-title').innerHTML = authMode === 'signup' ? '🌌 CREATE ACCOUNT' : '🔑 SIGN IN';
+    document.getElementById('signup-fields').style.display = authMode === 'signup' ? 'block' : 'none';
+    document.getElementById('auth-msg').textContent = '';
+    document.getElementById('auth-username').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-email').value = '';
+    modal.dataset.authMode = authMode;
+    modal.style.display = 'flex';
+};
+
+window.hideAuth = () => document.getElementById('auth-screen').style.display = 'none';
+
+window.toggleAuthMode = () => {
+    const modal = document.getElementById('auth-screen');
+    showAuthModal(modal.dataset.authMode === 'login' ? 'signup' : 'login');
+};
+
+window.handleAuth = () => {
+    const modal = document.getElementById('auth-screen');
+    const mode = modal.dataset.authMode;
+    const username = document.getElementById('auth-username').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const msg = document.getElementById('auth-msg');
+
+    if (!username || !password) {
+        msg.style.color = '#ff00aa';
+        msg.textContent = '⚠️ Username and password required!';
+        return;
+    }
+
+    if (mode === 'signup') {
+        if (usersDB.find(u => u.username === username)) {
+            msg.style.color = '#ff00aa';
+            msg.textContent = '❌ Username already exists!';
+            return;
+        }
+        const newUser = {
+            username: username,
+            password: password,
+            email: document.getElementById('auth-email').value.trim() || '',
+            joined: new Date().toISOString().split('T')[0],
+            highscores: {}
+        };
+        usersDB.push(newUser);
+        saveUsersDB();
+        currentUser = newUser;
+        localStorage.setItem('mindflip_current_user', username);
+        
+        msg.style.color = '#00ffaa';
+        msg.textContent = '✅ Account created successfully!';
+        setTimeout(() => { hideAuth(); renderAuthBar(); }, 1500);
+    } else {
+        const user = usersDB.find(u => u.username === username && u.password === password);
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('mindflip_current_user', username);
+            msg.style.color = '#00ffaa';
+            msg.textContent = `✅ Welcome back, ${username}!`;
+            setTimeout(() => { hideAuth(); renderAuthBar(); }, 1200);
+        } else {
+            msg.style.color = '#ff00aa';
+            msg.textContent = '❌ Incorrect credentials!';
+        }
+    }
+};
+
+window.logout = () => {
+    currentUser = null;
+    localStorage.removeItem('mindflip_current_user');
+    renderAuthBar();
+};
+
+// ====================== BACKGROUND ======================
 const canvas = document.getElementById("bg");
 const ctx = canvas.getContext("2d");
 let stars = [];
@@ -55,10 +224,8 @@ function animateBG() {
     });
     requestAnimationFrame(animateBG);
 }
-initBG(); animateBG();
-window.addEventListener('resize', initBG);
 
-// --- 🛠️ MENU LOGIC ---
+// ====================== GAME LOGIC ======================
 window.selectMode = (m, btn) => {
     mode = m;
     document.querySelectorAll("#modeSelect button").forEach(b => b.classList.remove("active"));
@@ -72,6 +239,7 @@ window.selectDiff = (d, btn) => {
     btn.classList.add("active");
 };
 
+// Generate Levels
 const levelContainer = document.getElementById("levels");
 for (let i = 1; i <= 40; i++) {
     let btn = document.createElement("button");
@@ -85,18 +253,20 @@ for (let i = 1; i <= 40; i++) {
     levelContainer.appendChild(btn);
 }
 
-// --- 🎮 GAME CORE ---
 window.startGame = () => {
-    // 🔓 MOBILE SOUND UNLOCK
-    // We play and immediately pause all sounds to "prime" the browser
-    Object.values(sounds).forEach(s => {
-        s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
+    const soundFiles = ['flip.mp3', 'match.mp3', 'wrong.mp3', 'win.mp3'];
+    soundFiles.forEach(file => {
+        const audio = new Audio(file);
+        audio.play().then(() => audio.pause()).catch(() => {});
     });
 
+    stopAllMusic();
     document.getElementById("menu").style.display = "none";
     document.getElementById("victory-screen").style.display = "none";
+
     players[0] = document.getElementById("p1").value || "Player 1";
     players[1] = document.getElementById("p2").value || "Player 2";
+
     scores = [0, 0];
     turn = 0;
     flipped = [];
@@ -129,13 +299,11 @@ function loadGame() {
 
 function flip(card, sym) {
     if (lockBoard || card.classList.contains("flipped")) return;
-    
-    playSound('flip'); // 🔊 Play MP3
+    new Audio('flip.mp3').play().catch(() => {});
     card.classList.add("flipped");
     flipped.push({ card, sym });
-
     if (flipped.length === 2) {
-        lockBoard = true; 
+        lockBoard = true;
         setTimeout(checkMatch, 600);
     }
 }
@@ -143,13 +311,13 @@ function flip(card, sym) {
 function checkMatch() {
     const [a, b] = flipped;
     if (a.sym === b.sym) {
-        playSound('match'); // 🔊 Play MP3
+        new Audio('match.mp3').play().catch(() => {});
         scores[turn]++;
         flipped = [];
         lockBoard = false;
         if (document.querySelectorAll(".flipped").length === cards.length) endGame();
     } else {
-        playSound('wrong'); // 🔊 Play MP3
+        new Audio('wrong.mp3').play().catch(() => {});
         setTimeout(() => {
             a.card.classList.remove("flipped");
             b.card.classList.remove("flipped");
@@ -162,22 +330,19 @@ function checkMatch() {
     updateUI();
 }
 
-function getHighScoreKey() {
-    return `mindflip_best_d${difficulty}_l${selectedLevel}`;
-}
-
 function endGame() {
-    playSound('win'); // 🔊 Play MP3
+    new Audio('win.mp3').play().catch(() => {});
+    playWinMusic();
+
     let winner = mode === "single" ? players[0] :
         scores[0] > scores[1] ? players[0] :
         scores[1] > scores[0] ? players[1] : "Draw";
 
     let isNewRecord = false;
     if (mode === "single") {
-        const key = getHighScoreKey();
-        const prevBest = localStorage.getItem(key) || 0;
-        if (scores[0] > prevBest) {
-            localStorage.setItem(key, scores[0]);
+        const prev = getBestScore();
+        if (scores[0] > prev) {
+            saveBestScore(scores[0]);
             isNewRecord = true;
         }
     }
@@ -190,15 +355,18 @@ function endGame() {
 }
 
 window.restartLevel = () => {
+    stopAllMusic();
+    document.getElementById("victory-screen").style.display = "none";
     scores = [0, 0];
     turn = 0;
     flipped = [];
     lockBoard = false;
     loadGame();
-    document.getElementById("victory-screen").style.display = "none";
 };
 
 window.backToMenu = () => {
+    stopAllMusic();
+    playMenuMusic();
     document.getElementById("victory-screen").style.display = "none";
     document.getElementById("menu").style.display = "flex";
     document.getElementById("grid").innerHTML = "";
@@ -207,12 +375,28 @@ window.backToMenu = () => {
 function updateUI() {
     const stats = document.getElementById("stats");
     const turnDiv = document.getElementById("turn");
+
     if (mode === "multi") {
         turnDiv.innerText = `${players[turn]}'s Turn`;
         stats.innerText = `${players[0]}: ${scores[0]} | ${players[1]}: ${scores[1]}`;
     } else {
-        const best = localStorage.getItem(getHighScoreKey()) || 0;
+        const best = getBestScore();
         turnDiv.innerText = "";
         stats.innerHTML = `Score: ${scores[0]} <span style="opacity:0.4; font-size:0.85rem; margin-left:10px;">Best: ${best}</span>`;
     }
-                     }
+}
+
+// ====================== INIT ======================
+function initializeGame() {
+    loadUsersFromStorage();
+    initBG();
+    animateBG();
+    window.addEventListener('resize', initBG);
+    initMusic();
+    renderAuthBar();
+    playMenuMusic();
+
+    console.log("%c🚀 MindFlip Ready! (Using knowledge_base.json structure)", "color:#00f0ff;font-size:1.1rem;");
+}
+
+initializeGame();
