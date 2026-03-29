@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MindFlip | Space Memory</title>
+    <style>
+        :root {
+            --neon-blue: #00f0ff;
+            --neon-pink: #ff00aa;
+            --space-black: #05051e;
+        }
+
+        body { 
+            margin: 0; 
+            background: var(--space-black); 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            overflow-x: hidden; 
+            color: white; 
+        }
+
+        #bg { position: fixed; top: 0; left: 0; z-index: -1; }
+
+        /* --- AUTH & MENU UI --- */
+        #menu, .victory-overlay, #auth-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 30, 0.9);
+            z-index: 1000;
+        }
+
+        .menu-box, #auth-box, .victory-box {
+            background: linear-gradient(135deg, #0a0a2e, #1a1a4e);
+            border: 3px solid var(--neon-blue);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 { font-size: 2.5rem; text-shadow: 0 0 15px var(--neon-blue); margin-bottom: 10px; }
+
+        /* --- BUTTONS & INPUTS --- */
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #0f1a2e;
+            border: 1px solid var(--neon-blue);
+            color: white;
+            border-radius: 5px;
+        }
+
+        .btn-group { margin: 15px 0; display: flex; justify-content: center; gap: 5px; }
+        
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        button.active, .start-btn {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .level-btn { padding: 5px; width: 35px; height: 35px; margin: 2px; font-size: 0.8rem; }
+
+        /* --- GAME GRID --- */
+        .grid { 
+            display: grid; 
+            gap: 10px; 
+            justify-content: center; 
+            perspective: 1000px; 
+            margin: 80px auto 20px;
+            max-width: 95vw;
+        }
+
+        .card {
+            aspect-ratio: 1/1;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card.flipped { transform: rotateY(180deg); }
+
+        .inner { position: relative; width: 100%; height: 100%; pointer-events: none; }
+
+        .front, .back {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 2px solid var(--neon-blue);
+        }
+
+        .front { background: #0a0a2e; box-shadow: inset 0 0 10px var(--neon-blue); }
+        .back { background: var(--neon-blue); color: black; transform: rotateY(180deg); }
+
+        /* --- HUD --- */
+        #stats-bar {
+            position: fixed;
+            top: 0; width: 100%;
+            padding: 15px;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: space-around;
+            z-index: 500;
+            border-bottom: 1px solid var(--neon-blue);
+        }
+
+        #music-btn {
+            position: fixed; top: 15px; right: 15px;
+            z-index: 2000; font-size: 1.5rem; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<audio id="menuMusic" loop src="menu_music.mp3"></audio>
+<audio id="winMusic" loop src="win_music.mp3"></audio>
+
+<div id="music-btn" onclick="toggleMusic()">🎵</div>
+
+<div id="menu">
+    <div class="menu-box">
+        <h1>🧠 MindFlip</h1>
+        <div id="auth-bar-container"></div>
+
+        <p>Game Mode</p>
+        <div class="btn-group" id="modeSelect">
+            <button class="active" onclick="selectMode('single',this)">Single</button>
+            <button onclick="selectMode('multi',this)">Multi</button>
+        </div>
+
+        <input id="p1" placeholder="Pilot 1 Name">
+        <input id="p2" placeholder="Pilot 2 Name" style="display:none;">
+
+        <p>Difficulty</p>
+        <div class="btn-group" id="diffSelect">
+            <button class="active" onclick="selectDiff(4,this)">Easy</button>
+            <button onclick="selectDiff(6,this)">Medium</button>
+            <button onclick="selectDiff(8,this)">Hard</button>
+        </div>
+
+        <p>Mission Level</p>
+        <div id="levels" style="max-height: 100px; overflow-y: auto; margin-bottom: 15px;"></div>
+
+        <button class="start-btn" onclick="startGame()">▶ Launch Mission</button>
+    </div>
+</div>
+
+<div id="stats-bar" style="display:none;">
+    <div id="turn-display"></div>
+    <div id="score-display"></div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div id="victory-screen" class="victory-overlay" style="display:none;">
+    <div class="victory-box">
+        <h2 id="winner-display">Mission Success!</h2>
+        <p id="record-msg"></p>
+        <button class="start-btn" onclick="restartLevel()">🔄 Retry</button>
+        <button onclick="backToMenu()">🏠 Hangar</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
