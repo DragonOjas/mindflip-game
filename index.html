@@ -165,15 +165,12 @@ canvas#stars{position:fixed;inset:0;z-index:0;opacity:.45;pointer-events:none;}
 #timer-bar-wrap{height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-bottom:9px;}
 #timer-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--g1),var(--g2));transition:width .15s linear,background .5s;}
 
-#peek-notice{text-align:center;padding:9px;margin-bottom:9px;background:rgba(0,0,0,.3);border:1px solid var(--accent);border-radius:10px;font-family:'Orbitron',sans-serif;font-size:11px;color:var(--accent);letter-spacing:3px;display:none;animation:pp .6s ease-in-out infinite alternate;transition:border-color .4s,color .4s;}
-@keyframes pp{from{opacity:.5}to{opacity:1}}
-
 #card-grid{display:grid;gap:8px;flex:1;place-content:center;width:100%;max-width:860px;margin:0 auto;}
 
 .card{aspect-ratio:3/4;border-radius:10px;cursor:pointer;perspective:700px;position:relative;transition:transform .15s;}
-.card:hover:not(.flipped):not(.matched):not(.peeking){transform:translateY(-4px) scale(1.04);}
+.card:hover:not(.flipped):not(.matched){transform:translateY(-4px) scale(1.04);}
 .card-inner{width:100%;height:100%;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1);border-radius:10px;}
-.card.flipped .card-inner,.card.peeking .card-inner{transform:rotateY(180deg);}
+.card.flipped .card-inner{transform:rotateY(180deg);}
 .card-face{position:absolute;inset:0;border-radius:10px;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
 .card-back-face{background:linear-gradient(135deg,#111827,#1a2540);border:1px solid var(--card-border);transition:border-color .4s;}
 .card-back-face::after{content:'';position:absolute;inset:8px;border-radius:6px;border:1px solid rgba(255,255,255,.05);background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,.012) 4px,rgba(255,255,255,.012) 8px);}
@@ -249,7 +246,6 @@ canvas#stars{position:fixed;inset:0;z-index:0;opacity:.45;pointer-events:none;}
     <div class="hud-item hud-time"><div class="hud-label">Time</div><div class="hud-val" id="g-time">--</div></div>
   </div>
   <div id="timer-bar-wrap"><div id="timer-bar" style="width:100%"></div></div>
-  <div id="peek-notice">👁 MEMORIZE THE CARDS!</div>
   <div id="card-grid"></div>
 </div>
 
@@ -296,6 +292,81 @@ function drawStars(){
 }
 initStars();drawStars();addEventListener('resize',initStars);
 
+/* ===== AUDIO ENGINE (COOL SYNTH SOUNDS) ===== */
+let audioCtx;
+function playSound(type){
+  if(!audioCtx){
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  const now=audioCtx.currentTime;
+  switch(type){
+    case 'flip': // quick electric flip
+      const oscF=audioCtx.createOscillator();
+      oscF.type='sine';
+      oscF.frequency.setValueAtTime(680,now);
+      const gainF=audioCtx.createGain();
+      oscF.connect(gainF).connect(audioCtx.destination);
+      gainF.gain.setValueAtTime(0.25,now);
+      gainF.gain.exponentialRampToValueAtTime(0.001,now+0.12);
+      oscF.start(now);
+      oscF.stop(now+0.15);
+      break;
+    case 'match': // rising cosmic chime
+      const freqs=[440,554,659,880];
+      freqs.forEach((freq,i)=>{
+        setTimeout(()=>{
+          const oscM=audioCtx.createOscillator();
+          oscM.frequency.setValueAtTime(freq,audioCtx.currentTime);
+          const gainM=audioCtx.createGain();
+          oscM.connect(gainM).connect(audioCtx.destination);
+          gainM.gain.setValueAtTime(0.3,audioCtx.currentTime);
+          gainM.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.35);
+          oscM.start();
+          oscM.stop(audioCtx.currentTime+0.4);
+        },i*45);
+      });
+      break;
+    case 'mismatch': // low gritty buzz
+      const oscMis=audioCtx.createOscillator();
+      oscMis.type='sawtooth';
+      oscMis.frequency.setValueAtTime(280,now);
+      const gainMis=audioCtx.createGain();
+      oscMis.connect(gainMis).connect(audioCtx.destination);
+      gainMis.gain.setValueAtTime(0.25,now);
+      gainMis.gain.exponentialRampToValueAtTime(0.001,now+0.45);
+      oscMis.start(now);
+      oscMis.stop(now+0.5);
+      break;
+    case 'win': // epic victory fanfare
+      const winNotes=[523.25,659.25,783.99,1046.5];
+      winNotes.forEach((freq,i)=>{
+        setTimeout(()=>{
+          const oscW=audioCtx.createOscillator();
+          oscW.frequency.setValueAtTime(freq,audioCtx.currentTime);
+          const gainW=audioCtx.createGain();
+          oscW.connect(gainW).connect(audioCtx.destination);
+          gainW.gain.setValueAtTime(0.35,audioCtx.currentTime);
+          gainW.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.9);
+          oscW.start();
+          oscW.stop(audioCtx.currentTime+1);
+        },i*80);
+      });
+      break;
+    case 'lose': // deep ominous drop
+      const oscL=audioCtx.createOscillator();
+      oscL.type='sine';
+      oscL.frequency.setValueAtTime(180,now);
+      const gainL=audioCtx.createGain();
+      oscL.connect(gainL).connect(audioCtx.destination);
+      gainL.gain.setValueAtTime(0.4,now);
+      gainL.gain.exponentialRampToValueAtTime(0.001,now+1.1);
+      oscL.start(now);
+      oscL.stop(now+1.3);
+      break;
+  }
+}
+
 /* ===== THEMES ===== */
 const THEMES={
   space:{name:'Space',icon:'🚀',desc:'Cosmic exploration',cls:'',
@@ -332,11 +403,10 @@ function updateHomeUI(){
 
 /* ===== LEVEL CONFIG ===== */
 function getLevelCfg(lvl,diff){
-  const peekMs=diff==='easy'?2000:diff==='medium'?1600:1300;
   const pairs=Math.min(3+Math.floor((lvl-1)*9/39),12);
   const base=35+pairs*6;
   const bonus=diff==='easy'?20:diff==='medium'?8:0;
-  return{pairs,peekMs,timeLimit:base+bonus};
+  return{pairs,timeLimit:base+bonus};
 }
 function calcStars(timeLeft,timeLimit,moves,pairs){
   const tp=timeLeft/timeLimit,eff=pairs/Math.max(moves,pairs);
@@ -383,7 +453,7 @@ function renderLevelModal(){
   const d=S.currentDiff,prog=S.levelProgress[d]||{};
   const tabs=['easy','medium','hard'].map(x=>`
     <button class="diff-tab ${x} ${d===x?'active':''}" onclick="setDiff('${x}')">
-      ${x.toUpperCase()}<br><small style="font-size:9px;opacity:.7">${x==='easy'?'2.0s':x==='medium'?'1.6s':'1.3s'} peek</small>
+      ${x.toUpperCase()}
     </button>`).join('');
   let btns='';
   for(let i=1;i<=40;i++){
@@ -434,14 +504,14 @@ function openScoreboard(){
 }
 
 /* ===== GAME ENGINE ===== */
-let G={cards:[],fc:null,sc:null,lock:false,score:0,moves:0,matches:0,pairs:0,streak:0,bestStreak:0,timer:null,timeLeft:0,timeLimit:0,startTime:0,peekT:null};
+let G={cards:[],fc:null,sc:null,lock:false,score:0,moves:0,matches:0,pairs:0,streak:0,bestStreak:0,timer:null,timeLeft:0,timeLimit:0,startTime:0};
 
 function startLevel(lvl){
   closeModal();
   S.currentLevel=lvl;saveS();
-  clearInterval(G.timer);clearTimeout(G.peekT);
+  clearInterval(G.timer);
   const cfg=getLevelCfg(lvl,S.currentDiff);
-  Object.assign(G,{cards:[],fc:null,sc:null,lock:false,score:0,moves:0,matches:0,pairs:cfg.pairs,streak:0,bestStreak:0,timeLeft:cfg.timeLimit,timeLimit:cfg.timeLimit,startTime:0,peekT:null});
+  Object.assign(G,{cards:[],fc:null,sc:null,lock:false,score:0,moves:0,matches:0,pairs:cfg.pairs,streak:0,bestStreak:0,timeLeft:cfg.timeLimit,timeLimit:cfg.timeLimit,startTime:0});
 
   document.getElementById('home-screen').style.display='none';
   document.getElementById('game-screen').classList.add('active');
@@ -483,23 +553,16 @@ function buildGrid(cfg){
     G.cards.push(card);
   });
 
-  // PEEK
-  const notice=document.getElementById('peek-notice');
-  notice.style.display='block';
-  G.cards.forEach(c=>c.classList.add('peeking'));
-  G.lock=true;
-  G.peekT=setTimeout(()=>{
-    G.cards.forEach(c=>c.classList.remove('peeking'));
-    notice.style.display='none';
-    G.lock=false;
-    G.startTime=Date.now();
-    startTimer(cfg.timeLimit);
-  },cfg.peekMs);
+  // START GAME IMMEDIATELY — NO AUTO PEEK
+  G.lock=false;
+  G.startTime=Date.now();
+  startTimer(cfg.timeLimit);
 }
 
 function flipCard(card){
   if(G.lock||card.classList.contains('flipped')||card.classList.contains('matched'))return;
   card.classList.add('flipped');
+  playSound('flip');                    // ← COOL FLIP SOUND
   if(!G.fc){G.fc=card;return;}
   if(G.fc===card)return;
   G.sc=card;G.lock=true;G.moves++;
@@ -514,6 +577,7 @@ function checkMatch(){
     const bonus=G.streak>1?G.streak*25:0;
     G.score+=100+bonus;
     if(G.streak>1)showCombo(G.streak,100+bonus);
+    playSound('match');                 // ← MATCH SOUND
     a.classList.add('matched');b.classList.add('matched');
     [a,b].forEach(c=>c.querySelector('.card-front-face').style.borderColor='var(--accent)');
     resetPair();
@@ -521,6 +585,7 @@ function checkMatch(){
     if(G.matches===G.pairs)setTimeout(winLevel,350);
   }else{
     G.streak=0;
+    playSound('mismatch');              // ← MISMATCH SOUND
     updateHUD();
     a.classList.add('wrong');b.classList.add('wrong');
     setTimeout(()=>{
@@ -568,7 +633,7 @@ function winLevel(){
   const newHs=total>prevHs;
   if(newHs)S.highScores[S.playerName]=total;
 
-  // Leaderboard — keep best per player+level+diff
+  // Leaderboard
   S.leaderboard.push({name:S.playerName,score:total,level:S.currentLevel,diff:S.currentDiff,time:elapsed,streak:G.bestStreak,stars,date:Date.now()});
   const seen={};
   S.leaderboard=S.leaderboard.filter(e=>{
@@ -576,6 +641,7 @@ function winLevel(){
     if(!seen[k]||e.score>seen[k]){seen[k]=e.score;return true;}return false;
   }).sort((a,b)=>b.score-a.score).slice(0,200);
   saveS();updateHomeUI();spawnConfetti();
+  playSound('win');                     // ← WIN SOUND
 
   document.getElementById('r-title').className='result-title';
   document.getElementById('r-title').textContent='✦ VICTORY!';
@@ -593,6 +659,7 @@ function winLevel(){
 
 function loseLevel(){
   const elapsed=Math.round((Date.now()-G.startTime)/1000);
+  playSound('lose');                    // ← LOSE SOUND
   document.getElementById('r-title').className='result-title lose';
   document.getElementById('r-title').textContent='⏰ TIME UP!';
   document.getElementById('r-sub').textContent="YOU'VE GOT THIS — TRY AGAIN";
@@ -610,7 +677,7 @@ function loseLevel(){
 function nextLevel(){if(S.currentLevel<40)startLevel(S.currentLevel+1);}
 function retryLevel(){startLevel(S.currentLevel);}
 function goHome(){
-  clearInterval(G.timer);clearTimeout(G.peekT);
+  clearInterval(G.timer);
   document.getElementById('game-screen').classList.remove('active');
   document.getElementById('home-screen').style.display='flex';
   document.getElementById('result-overlay').classList.remove('show');
