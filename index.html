@@ -1,281 +1,641 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MindFlip | Space Memory</title>
-    <link rel="stylesheet" href="global.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindFlip</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080b14; --bg2:#0d1220; --bg3:#111827;
+  --accent:#00f5ff; --accent2:#ff2d78; --accent3:#7b2fff;
+  --gold:#ffd700; --text:#e0eaff; --muted:#5a6a8a;
+  --card-border:#1e2d4a;
+  --g1:#00f5ff; --g2:#7b2fff; --g3:#ff2d78;
+  --logo-grad:linear-gradient(135deg,#00f5ff 0%,#7b2fff 50%,#ff2d78 100%);
+  --btn-grad:linear-gradient(135deg,#00c4cc,#7b2fff);
+  --card-front:linear-gradient(135deg,#1a0a3d,#0d1a3a);
+  --amb1:rgba(123,47,255,0.06); --amb2:rgba(0,245,255,0.05); --amb3:rgba(255,45,120,0.05);
+}
+body.t-ocean {
+  --bg:#020f18; --bg2:#041520; --bg3:#061d2e;
+  --accent:#00d4ff; --accent2:#00ffaa; --accent3:#0077cc;
+  --card-border:#0a3050;
+  --g1:#00d4ff; --g2:#0077cc; --g3:#00ffaa;
+  --logo-grad:linear-gradient(135deg,#00d4ff,#0077cc,#00ffaa);
+  --btn-grad:linear-gradient(135deg,#00d4ff,#0077cc);
+  --card-front:linear-gradient(135deg,#013c52,#001f38);
+  --amb1:rgba(0,212,255,0.07); --amb2:rgba(0,119,204,0.05); --amb3:rgba(0,255,170,0.04);
+}
+body.t-forest {
+  --bg:#050e06; --bg2:#091408; --bg3:#0f1f0e;
+  --accent:#5ddb6a; --accent2:#a3e635; --accent3:#2d8a3e;
+  --card-border:#1a3d1e;
+  --g1:#5ddb6a; --g2:#2d8a3e; --g3:#a3e635;
+  --logo-grad:linear-gradient(135deg,#a3e635,#2d8a3e,#5ddb6a);
+  --btn-grad:linear-gradient(135deg,#5ddb6a,#2d8a3e);
+  --card-front:linear-gradient(135deg,#0f2a15,#1a3a1a);
+  --amb1:rgba(93,219,106,0.06); --amb2:rgba(45,138,62,0.05); --amb3:rgba(163,230,53,0.04);
+}
+body.t-programming {
+  --bg:#0a0800; --bg2:#120f00; --bg3:#1a1500;
+  --accent:#ffb700; --accent2:#ff6b00; --accent3:#ff2d00;
+  --card-border:#3a2800;
+  --g1:#ffb700; --g2:#ff6b00; --g3:#ff2d00;
+  --logo-grad:linear-gradient(135deg,#ffb700,#ff6b00,#ff2d00);
+  --btn-grad:linear-gradient(135deg,#ffb700,#ff6b00);
+  --card-front:linear-gradient(135deg,#2a1a00,#1a0f00);
+  --amb1:rgba(255,183,0,0.06); --amb2:rgba(255,107,0,0.05); --amb3:rgba(255,45,0,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;position:relative;transition:background .6s,color .3s;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 50%,var(--amb1) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,var(--amb2) 0%,transparent 50%),radial-gradient(ellipse at 60% 80%,var(--amb3) 0%,transparent 50%);transition:background .6s;}
+canvas#stars{position:fixed;inset:0;z-index:0;opacity:.45;pointer-events:none;}
+.screen{position:relative;z-index:1;}
 
-    <link rel="preload" href="assets/flip.wav" as="audio">
-    <link rel="preload" href="assets/match.wav" as="audio">
-    <link rel="preload" href="assets/wrong.wav" as="audio">
-    <link rel="preload" href="assets/win.wav" as="audio">
+/* HOME */
+#home-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;}
+.logo-pre{font-size:12px;letter-spacing:6px;color:var(--accent);text-transform:uppercase;margin-bottom:6px;opacity:.7;transition:color .4s;}
+.logo{font-family:'Orbitron',sans-serif;font-size:clamp(50px,10vw,92px);font-weight:900;line-height:1;letter-spacing:-2px;background:var(--logo-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:plogo 3s ease-in-out infinite;}
+@keyframes plogo{0%,100%{filter:drop-shadow(0 0 28px var(--accent))}50%{filter:drop-shadow(0 0 55px var(--accent3))}}
+.logo-sub{font-size:14px;letter-spacing:4px;color:var(--muted);margin-top:10px;text-transform:uppercase;font-weight:300;}
+.theme-badge{margin-top:10px;display:inline-block;padding:4px 16px;border:1px solid var(--accent);border-radius:50px;font-size:11px;letter-spacing:2px;color:var(--accent);transition:all .4s;}
+.player-info-bar{margin:22px 0 6px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid var(--card-border);border-radius:50px;padding:9px 22px;transition:border-color .4s;}
+.pname{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--accent);transition:color .4s;}
+.hsdisp{font-size:13px;color:var(--gold);}
+.sep{color:var(--muted);}
+.btn-group{display:flex;flex-direction:column;gap:12px;width:100%;max-width:310px;margin-top:14px;}
+.btn-main{position:relative;padding:15px 28px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;border:none;border-radius:10px;cursor:pointer;text-transform:uppercase;transition:all .22s;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;}
+.btn-main::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transform:translateX(-100%);transition:transform .5s;}
+.btn-main:hover::before{transform:translateX(100%);}
+.btn-main:hover{transform:translateY(-2px);}
+.btn-main:active{transform:translateY(0) scale(.98);}
+.btn-play{background:var(--btn-grad);color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.3);transition:background .5s,box-shadow .2s;}
+.btn-play:hover{box-shadow:0 8px 30px rgba(0,0,0,.4);}
+.btn-theme{background:transparent;color:var(--accent2);border:2px solid var(--accent2);}
+.btn-theme:hover{background:rgba(255,45,120,.07);box-shadow:0 4px 20px rgba(255,45,120,.3);}
+.btn-sec{background:transparent;color:var(--muted);border:1px solid var(--card-border);font-size:12px;padding:11px 22px;}
+.btn-sec:hover{color:var(--text);border-color:var(--muted);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:100;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border:1px solid var(--card-border);border-radius:18px;padding:26px;width:100%;max-width:500px;box-shadow:0 0 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);transform:scale(.93) translateY(10px);transition:transform .28s cubic-bezier(.34,1.56,.64,1);max-height:92vh;overflow-y:auto;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal h2{font-family:'Orbitron',sans-serif;font-size:17px;margin-bottom:20px;background:var(--logo-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:21px;cursor:pointer;line-height:1;margin-top:-4px;transition:color .2s;}
+.modal-close:hover{color:var(--text);}
+
+/* THEME GRID */
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.theme-card{border:2px solid var(--card-border);border-radius:12px;padding:18px 12px;cursor:pointer;text-align:center;transition:all .22s;background:rgba(255,255,255,.02);position:relative;overflow:hidden;}
+.theme-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;}
+.tc-space::before{background:radial-gradient(circle at 50% 0%,rgba(123,47,255,.25),transparent 65%);}
+.tc-ocean::before{background:radial-gradient(circle at 50% 0%,rgba(0,212,255,.25),transparent 65%);}
+.tc-forest::before{background:radial-gradient(circle at 50% 0%,rgba(93,219,106,.25),transparent 65%);}
+.tc-programming::before{background:radial-gradient(circle at 50% 0%,rgba(255,183,0,.25),transparent 65%);}
+.theme-card:hover{transform:translateY(-3px);}
+.theme-card:hover::before,.theme-card.active::before{opacity:1;}
+.t-icon{font-size:32px;display:block;margin-bottom:7px;}
+.t-name{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:1px;}
+.t-desc{font-size:11px;color:var(--muted);margin-top:3px;}
+.tc-space.active{border-color:#7b2fff;}
+.tc-ocean.active{border-color:#00d4ff;}
+.tc-forest.active{border-color:#5ddb6a;}
+.tc-programming.active{border-color:#ffb700;}
+.active-chk{position:absolute;top:7px;right:7px;width:17px;height:17px;background:var(--accent);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:9px;color:#000;font-weight:900;}
+.theme-card.active .active-chk{display:flex;}
+
+/* DIFF TABS */
+.diff-tabs{display:flex;gap:7px;margin-bottom:16px;}
+.diff-tab{flex:1;padding:9px 4px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--muted);font-family:'Orbitron',sans-serif;font-size:10px;cursor:pointer;transition:all .2s;letter-spacing:1px;line-height:1.5;}
+.diff-tab:hover{color:var(--text);border-color:var(--muted);}
+.diff-tab.easy.active{border-color:#5ddb6a;background:rgba(93,219,106,.12);color:#5ddb6a;}
+.diff-tab.medium.active{border-color:#ffb700;background:rgba(255,183,0,.12);color:#ffb700;}
+.diff-tab.hard.active{border-color:#ff2d78;background:rgba(255,45,120,.12);color:#ff2d78;}
+
+/* LEVEL GRID */
+.levels-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;max-height:350px;overflow-y:auto;padding-right:3px;}
+.lvl-btn{aspect-ratio:1;border-radius:9px;border:1px solid var(--card-border);background:rgba(255,255,255,.03);color:var(--text);font-family:'Orbitron',sans-serif;font-size:11px;cursor:pointer;transition:all .18s;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.lvl-btn:not(.locked):hover{background:rgba(255,255,255,.09);border-color:var(--accent);color:var(--accent);transform:scale(1.07);}
+.lvl-btn.locked{opacity:.35;cursor:not-allowed;background:rgba(0,0,0,.25);}
+.lvl-btn.completed{border-color:rgba(255,215,0,.3);}
+.lvl-btn.cur{border-color:var(--accent);background:rgba(0,245,255,.07);}
+.lvl-stars{font-size:7px;letter-spacing:.5px;color:var(--gold);line-height:1;}
+.lock-ico{font-size:14px;}
+
+/* LEADERBOARD */
+.lb-wrap{max-height:300px;overflow-y:auto;margin-top:4px;}
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--card-border);text-align:left;}
+.lb-table td{padding:8px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;}
+.lb-table tr:last-child td{border:none;}
+.lb-table tr:hover td{background:rgba(255,255,255,.02);}
+.lbr{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--muted);}
+.lbr.r1{color:#ffd700;}.lbr.r2{color:#c0c0c0;}.lbr.r3{color:#cd7f32;}
+.lbs{font-family:'Orbitron',sans-serif;color:var(--accent);}
+.lbst{color:var(--gold);font-size:10px;}
+.lbd{font-size:9px;padding:2px 7px;border-radius:20px;}
+.lbd.easy{background:rgba(93,219,106,.15);color:#5ddb6a;}
+.lbd.medium{background:rgba(255,183,0,.15);color:#ffb700;}
+.lbd.hard{background:rgba(255,45,120,.15);color:#ff2d78;}
+.lb-empty{text-align:center;padding:28px;color:var(--muted);font-size:13px;}
+
+/* NAME INPUT */
+.name-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.04);border:1px solid var(--card-border);border-radius:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:17px;outline:none;transition:border .2s;margin-bottom:12px;}
+.name-input:focus{border-color:var(--accent);}
+.btn-confirm{width:100%;padding:13px;background:var(--btn-grad);border:none;border-radius:10px;color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:2px;cursor:pointer;transition:all .2s;}
+.btn-confirm:hover{opacity:.9;transform:translateY(-1px);}
+
+/* GAME SCREEN */
+#game-screen{display:none;flex-direction:column;min-height:100vh;padding:12px 14px;}
+#game-screen.active{display:flex;}
+.game-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid var(--card-border);border-radius:12px;margin-bottom:9px;flex-wrap:wrap;gap:7px;transition:border-color .4s;}
+.hud-item{text-align:center;min-width:46px;}
+.hud-label{font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.hud-val{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;}
+.hud-score .hud-val{color:var(--accent);transition:color .4s;}
+.hud-level .hud-val{color:var(--accent3);transition:color .4s;}
+.hud-time .hud-val{color:var(--accent2);}
+.hud-streak .hud-val{color:var(--gold);}
+.hud-player .hud-val{font-size:12px;}
+.btn-back{background:none;border:1px solid var(--card-border);color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:1px;transition:all .2s;}
+.btn-back:hover{color:var(--text);border-color:var(--muted);}
+
+#timer-bar-wrap{height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-bottom:9px;}
+#timer-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--g1),var(--g2));transition:width .15s linear,background .5s;}
+
+#peek-notice{text-align:center;padding:9px;margin-bottom:9px;background:rgba(0,0,0,.3);border:1px solid var(--accent);border-radius:10px;font-family:'Orbitron',sans-serif;font-size:11px;color:var(--accent);letter-spacing:3px;display:none;animation:pp .6s ease-in-out infinite alternate;transition:border-color .4s,color .4s;}
+@keyframes pp{from{opacity:.5}to{opacity:1}}
+
+#card-grid{display:grid;gap:8px;flex:1;place-content:center;width:100%;max-width:860px;margin:0 auto;}
+
+.card{aspect-ratio:3/4;border-radius:10px;cursor:pointer;perspective:700px;position:relative;transition:transform .15s;}
+.card:hover:not(.flipped):not(.matched):not(.peeking){transform:translateY(-4px) scale(1.04);}
+.card-inner{width:100%;height:100%;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1);border-radius:10px;}
+.card.flipped .card-inner,.card.peeking .card-inner{transform:rotateY(180deg);}
+.card-face{position:absolute;inset:0;border-radius:10px;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
+.card-back-face{background:linear-gradient(135deg,#111827,#1a2540);border:1px solid var(--card-border);transition:border-color .4s;}
+.card-back-face::after{content:'';position:absolute;inset:8px;border-radius:6px;border:1px solid rgba(255,255,255,.05);background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,.012) 4px,rgba(255,255,255,.012) 8px);}
+.card-sym{font-size:1.5em;opacity:.1;}
+.card-front-face{transform:rotateY(180deg);border:1px solid rgba(255,255,255,.1);background:var(--card-front);font-size:2em;transition:background .5s,border-color .3s;}
+.card-lbl{font-size:.28em;font-family:'Rajdhani',sans-serif;letter-spacing:1px;opacity:.65;margin-top:1px;}
+.card.matched .card-front-face{border-color:var(--accent);box-shadow:0 0 14px rgba(0,0,0,.2);animation:mpop .38s ease;}
+@keyframes mpop{0%{transform:rotateY(180deg) scale(1)}50%{transform:rotateY(180deg) scale(1.1)}100%{transform:rotateY(180deg) scale(1)}}
+.card.wrong .card-inner{animation:wshake .45s ease;}
+@keyframes wshake{0%,100%{transform:rotateY(180deg)}20%{transform:rotateY(180deg) translateX(-5px)}40%{transform:rotateY(180deg) translateX(5px)}60%{transform:rotateY(180deg) translateX(-4px)}80%{transform:rotateY(180deg) translateX(4px)}}
+
+/* RESULT */
+#result-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.9);display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(12px);text-align:center;padding:28px 16px;}
+#result-overlay.show{display:flex;animation:rin .4s ease;}
+@keyframes rin{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.result-title{font-family:'Orbitron',sans-serif;font-size:clamp(34px,8vw,70px);font-weight:900;margin-bottom:4px;background:var(--logo-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.result-title.lose{background:linear-gradient(135deg,#ff2d78,#7b2fff);-webkit-background-clip:text;background-clip:text;}
+.result-sub{color:var(--muted);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;margin-bottom:14px;}
+.r-stars{font-size:40px;letter-spacing:6px;margin-bottom:12px;}
+.r-new-hs{color:var(--gold);font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:2px;margin-bottom:12px;padding:7px 18px;border:1px solid var(--gold);border-radius:50px;background:rgba(255,215,0,.07);animation:gp 1s ease-in-out infinite;}
+@keyframes gp{0%,100%{opacity:1;box-shadow:0 0 10px rgba(255,215,0,.2)}50%{opacity:.7;box-shadow:0 0 20px rgba(255,215,0,.5)}}
+.result-stats{display:flex;gap:20px;margin:14px 0;flex-wrap:wrap;justify-content:center;background:rgba(255,255,255,.03);border:1px solid var(--card-border);border-radius:14px;padding:16px 24px;}
+.r-stat{text-align:center;}
+.r-stat-val{font-family:'Orbitron',sans-serif;font-size:24px;color:var(--accent);}
+.r-stat-lbl{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.result-btns{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+
+/* CONFETTI */
+.cfetti{position:fixed;top:-14px;border-radius:3px;animation:fall linear forwards;pointer-events:none;z-index:200;}
+@keyframes fall{0%{transform:translateY(0) rotateZ(0);opacity:1}100%{transform:translateY(110vh) rotateZ(800deg);opacity:0}}
+
+/* COMBO */
+.combo-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold),#ff9800);color:#000;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;padding:8px 20px;border-radius:50px;z-index:300;animation:tup 1.2s ease forwards;pointer-events:none;}
+@keyframes tup{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-70px)}}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:3px;}
+</style>
 </head>
 <body>
+<canvas id="stars"></canvas>
 
-<canvas id="bg"></canvas>
-
-<div id="menu">
-    <div class="menu-box">
-        <h1>🧠 MindFlip</h1>
-        
-        <p>Game Mode</p>
-        <div class="btn-group" id="modeSelect">
-            <button class="active" onclick="selectMode('single',this)">Single</button>
-            <button onclick="selectMode('multi',this)">Multi</button>
-        </div>
-        
-        <input id="p1" placeholder="Player 1 Name">
-        <input id="p2" placeholder="Player 2 Name" style="display:none;">
-        
-        <p>Difficulty</p>
-        <div class="btn-group" id="diffSelect">
-            <button class="active" onclick="selectDiff(4,this)">Easy</button>
-            <button onclick="selectDiff(6,this)">Medium</button>
-            <button onclick="selectDiff(8,this)">Hard</button>
-        </div>
-        
-        <p>Select Level</p>
-        <div id="levels"></div>
-        
-        <button class="start-btn" onclick="startGame()">▶ Start Mission</button>
-    </div>
+<!-- HOME -->
+<div id="home-screen" class="screen">
+  <div class="logo-wrap">
+    <div class="logo-pre">✦ memory challenge ✦</div>
+    <div class="logo">MindFlip</div>
+    <div class="logo-sub">Train your brain. Beat your friends.</div>
+    <div class="theme-badge" id="theme-badge">🚀 Space Theme</div>
+  </div>
+  <div class="player-info-bar">
+    <span class="pname" id="pname-disp">Guest</span>
+    <span class="sep">·</span>
+    <span class="hsdisp">🏆 <span id="hs-disp">0</span></span>
+  </div>
+  <div class="btn-group">
+    <button class="btn-main btn-play" onclick="openLevelSelect()">⚡ Play Game</button>
+    <button class="btn-main btn-theme" onclick="openTheme()">🎨 Choose Theme</button>
+    <button class="btn-main btn-sec" onclick="openName()">👤 Set Player Name</button>
+    <button class="btn-main btn-sec" onclick="openScoreboard()">🏆 Leaderboard</button>
+  </div>
 </div>
 
-<div id="victory-screen" class="victory-overlay" style="display:none;">
-    <div class="victory-box">
-        <div class="trophy">🏆</div>
-        <h2 id="winner-display">Winner!</h2>
-        <div id="record-msg" style="color:#facc15; font-weight:bold; margin-bottom:10px; font-size:1.1rem;"></div>
-        
-        <div class="victory-btns">
-            <button class="start-btn" onclick="restartLevel()">🔄 Play Again</button>
-            <button class="secondary-btn" onclick="backToMenu()">🏠 Main Menu</button>
-        </div>
-    </div>
+<!-- GAME -->
+<div id="game-screen" class="screen">
+  <div class="game-header">
+    <button class="btn-back" onclick="goHome()">← Home</button>
+    <div class="hud-item hud-player"><div class="hud-label">Player</div><div class="hud-val" id="g-player">---</div></div>
+    <div class="hud-item hud-level"><div class="hud-label">Level</div><div class="hud-val" id="g-level">1</div></div>
+    <div class="hud-item hud-score"><div class="hud-label">Score</div><div class="hud-val" id="g-score">0</div></div>
+    <div class="hud-item hud-streak"><div class="hud-label">Streak</div><div class="hud-val" id="g-streak">0🔥</div></div>
+    <div class="hud-item hud-time"><div class="hud-label">Time</div><div class="hud-val" id="g-time">--</div></div>
+  </div>
+  <div id="timer-bar-wrap"><div id="timer-bar" style="width:100%"></div></div>
+  <div id="peek-notice">👁 MEMORIZE THE CARDS!</div>
+  <div id="card-grid"></div>
 </div>
 
-<h3 id="stats"></h3>
-<div id="turn"></div>
-<div class="grid" id="grid"></div>
+<!-- RESULT -->
+<div id="result-overlay">
+  <div class="result-title" id="r-title">VICTORY!</div>
+  <div class="result-sub" id="r-sub">LEVEL 1 CLEARED</div>
+  <div class="r-stars" id="r-stars">⭐⭐⭐</div>
+  <div id="r-newhs" class="r-new-hs" style="display:none">🎉 NEW HIGH SCORE!</div>
+  <div class="result-stats">
+    <div class="r-stat"><div class="r-stat-val" id="r-score">0</div><div class="r-stat-lbl">Score</div></div>
+    <div class="r-stat"><div class="r-stat-val" id="r-time">0s</div><div class="r-stat-lbl">Time Used</div></div>
+    <div class="r-stat"><div class="r-stat-val" id="r-moves">0</div><div class="r-stat-lbl">Moves</div></div>
+    <div class="r-stat"><div class="r-stat-val" id="r-streak">0</div><div class="r-stat-lbl">Best Streak</div></div>
+    <div class="r-stat"><div class="r-stat-val" id="r-bonus">+0</div><div class="r-stat-lbl">Time Bonus</div></div>
+  </div>
+  <div class="result-btns">
+    <button class="btn-main btn-play" id="btn-next" onclick="nextLevel()" style="min-width:130px">Next ▶</button>
+    <button class="btn-main" onclick="retryLevel()" style="min-width:110px;background:rgba(255,255,255,.07);border:1px solid var(--card-border)">↺ Retry</button>
+    <button class="btn-main btn-sec" onclick="goHome()" style="min-width:100px">🏠 Home</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeBg(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
 
 <script>
-/** 🌌 BACKGROUND ANIMATION **/
-const canvas = document.getElementById("bg");
-const ctx = canvas.getContext("2d");
-let stars = [];
-
-function initBG() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    stars = [];
-    for(let i=0; i<120; i++){
-        stars.push({
-            x: Math.random() * canvas.width, 
-            y: Math.random() * canvas.height, 
-            size: Math.random() * 2
-        });
-    }
+/* ===== STARFIELD ===== */
+const cnv=document.getElementById('stars'),sctx=cnv.getContext('2d');
+let stars=[];
+function initStars(){
+  cnv.width=innerWidth;cnv.height=innerHeight;
+  stars=Array.from({length:180},()=>({x:Math.random()*cnv.width,y:Math.random()*cnv.height,r:Math.random()*1.5+.3,o:Math.random(),s:Math.random()*.008+.003}));
 }
-
-function animateBG(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "white";
-    stars.forEach(s => {
-        ctx.fillRect(s.x, s.y, s.size, s.size);
-        s.y += 0.2;
-        if(s.y > canvas.height) s.y = 0;
-    });
-    requestAnimationFrame(animateBG);
+function drawStars(){
+  sctx.clearRect(0,0,cnv.width,cnv.height);
+  stars.forEach(s=>{s.o+=s.s;if(s.o>1)s.o=0;sctx.beginPath();sctx.arc(s.x,s.y,s.r,0,Math.PI*2);sctx.fillStyle=`rgba(200,220,255,${s.o})`;sctx.fill();});
+  requestAnimationFrame(drawStars);
 }
-initBG();
-animateBG();
-window.addEventListener('resize', initBG);
+initStars();drawStars();addEventListener('resize',initStars);
 
-/** 🎮 GAME STATE & CONFIG **/
-const symbols = ["🚀","👽","🌕","🛸","⭐","🌌","☄️","🪐","🤖","📡","🛰️","🔭"];
-let cards=[], flipped=[];
-let players=["P1","P2"];
-let scores=[0,0];
-let turn=0;
-let mode="single";
-let difficulty=4;
-let selectedLevel=1;
-let lockBoard = false;
-
-// 🔊 Corrected Audio Paths to .wav
-const sounds = {
-    flip: new Audio('./assets/flip.wav'),
-    match: new Audio('./assets/match.wav'),
-    wrong: new Audio('./assets/wrong.wav'),
-    win: new Audio('./assets/win.wav')
+/* ===== THEMES ===== */
+const THEMES={
+  space:{name:'Space',icon:'🚀',desc:'Cosmic exploration',cls:'',
+    emojis:['🚀','🌙','⭐','🪐','☄️','👽','🛸','🌠','🔭','💫','🌌','🛰️','🌟','🌀','🔮','⚡','🌈','🌑','💎','🌊']},
+  ocean:{name:'Ocean',icon:'🌊',desc:'Deep sea wonders',cls:'t-ocean',
+    emojis:['🐠','🦈','🐙','🦑','🐚','🐡','🦀','🐋','🐬','🦞','🪸','🐟','🦭','🐳','🌴','🏝️','⛵','🐢','🦜','🌊']},
+  forest:{name:'Forest',icon:'🌲',desc:'Nature spirits',cls:'t-forest',
+    emojis:['🌲','🦊','🍄','🦌','🐺','🌿','🦋','🍁','🐻','🦉','🌺','🍀','🐸','🌻','🦔','🐝','🌾','🍃','🦡','🐦']},
+  programming:{name:'Code',icon:'💻',desc:'Developer life',cls:'t-programming',
+    emojis:['💻','🐛','⚙️','🔧','📦','🖥️','🗄️','🔌','💾','📡','⌨️','🖱️','📟','🔋','📲','🧩','🤖','📊','🗂️','🧲']}
 };
+const ENAMES={'🚀':'Rocket','🌙':'Moon','⭐':'Star','🪐':'Saturn','☄️':'Comet','👽':'Alien','🛸':'UFO','🌠':'Shooting Star','🔭':'Telescope','💫':'Sparkle','🌌':'Galaxy','🛰️':'Satellite','🌟':'Glow','🌀':'Vortex','🔮':'Orb','⚡':'Lightning','🌈':'Rainbow','🌑':'Dark Moon','💎':'Gem','🐠':'Clownfish','🦈':'Shark','🐙':'Octopus','🦑':'Squid','🐚':'Shell','🐡':'Pufferfish','🦀':'Crab','🐋':'Whale','🐬':'Dolphin','🦞':'Lobster','🪸':'Coral','🐟':'Fish','🦭':'Seal','🐳':'Blue Whale','🌴':'Palm','🏝️':'Island','⛵':'Sailboat','🐢':'Turtle','🦜':'Parrot','🌲':'Pine','🦊':'Fox','🍄':'Mushroom','🦌':'Deer','🐺':'Wolf','🌿':'Leaf','🦋':'Butterfly','🍁':'Maple','🐻':'Bear','🦉':'Owl','🌺':'Flower','🍀':'Clover','🐸':'Frog','🌻':'Sunflower','🦔':'Hedgehog','🐝':'Bee','🌾':'Wheat','🍃':'Leaves','🦡':'Badger','🐦':'Bird','💻':'Laptop','🐛':'Bug','⚙️':'Gear','🔧':'Wrench','📦':'Package','🖥️':'Desktop','🗄️':'Server','🔌':'Plug','💾':'Disk','📡':'Antenna','⌨️':'Keyboard','🖱️':'Mouse','📟':'Pager','🔋':'Battery','📲':'Mobile','🧩':'Puzzle','🤖':'Robot','📊':'Chart','🗂️':'Files','🧲':'Magnet','🌊':'Wave'};
 
-function playSound(name) {
-    if (sounds[name]) {
-        sounds[name].currentTime = 0; 
-        sounds[name].play().catch(e => console.log("Sound check:", e.message));
-    }
+/* ===== STATE ===== */
+let S={playerName:'Guest',currentTheme:'space',currentDiff:'easy',currentLevel:1,highScores:{},levelProgress:{},leaderboard:[]};
+
+function loadS(){
+  try{const d=localStorage.getItem('mf3v');if(d)Object.assign(S,JSON.parse(d));}catch(e){}
+  applyTheme(S.currentTheme,false);
+  updateHomeUI();
+}
+function saveS(){localStorage.setItem('mf3v',JSON.stringify(S));}
+
+function applyTheme(key,save=true){
+  S.currentTheme=key;
+  document.body.className=THEMES[key].cls;
+  document.getElementById('theme-badge').textContent=`${THEMES[key].icon} ${THEMES[key].name} Theme`;
+  if(save){saveS();updateHomeUI();}
+}
+function updateHomeUI(){
+  document.getElementById('pname-disp').textContent=S.playerName;
+  document.getElementById('hs-disp').textContent=S.highScores[S.playerName]||0;
 }
 
-function selectMode(m, btn){
-    mode = m;
-    document.querySelectorAll("#modeSelect button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("p2").style.display = (m === 'multi') ? "block" : "none";
+/* ===== LEVEL CONFIG ===== */
+function getLevelCfg(lvl,diff){
+  const peekMs=diff==='easy'?2000:diff==='medium'?1600:1300;
+  const pairs=Math.min(3+Math.floor((lvl-1)*9/39),12);
+  const base=35+pairs*6;
+  const bonus=diff==='easy'?20:diff==='medium'?8:0;
+  return{pairs,peekMs,timeLimit:base+bonus};
+}
+function calcStars(timeLeft,timeLimit,moves,pairs){
+  const tp=timeLeft/timeLimit,eff=pairs/Math.max(moves,pairs);
+  if(tp>.55&&eff>.8)return 3;
+  if(tp>.25&&eff>.5)return 2;
+  return 1;
+}
+function isUnlocked(lvl,diff){
+  if(lvl===1)return true;
+  return !!((S.levelProgress[diff]||{})[lvl-1]);
 }
 
-function selectDiff(d, btn){
-    difficulty = d;
-    document.querySelectorAll("#diffSelect button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-}
+/* ===== MODAL ===== */
+function openModal(html){document.getElementById('modal-content').innerHTML=html;document.getElementById('modal-overlay').classList.add('open');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function closeBg(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
 
-const levelContainer = document.getElementById("levels");
-for(let i=1; i<=40; i++){
-    let btn = document.createElement("button");
-    btn.innerText = i;
-    btn.className = "level-btn" + (i === 1 ? " active" : "");
-    btn.onclick = () => {
-        selectedLevel = i;
-        document.querySelectorAll(".level-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-    };
-    levelContainer.appendChild(btn);
+/* NAME */
+function openName(){
+  openModal(`<h2>👤 Set Your Name</h2>
+    <input class="name-input" id="ni" maxlength="16" placeholder="Your name..." value="${S.playerName}">
+    <button class="btn-confirm" onclick="confirmName()">Save →</button>`);
+  setTimeout(()=>{const el=document.getElementById('ni');if(el){el.focus();el.select();}},100);
 }
+function confirmName(){const v=(document.getElementById('ni').value||'').trim();if(!v)return;S.playerName=v;saveS();updateHomeUI();closeModal();}
 
-/** 🕹️ GAME ENGINE **/
-function startGame(){
-    // 🔊 UNLOCK AUDIO
-    Object.values(sounds).forEach(s => {
-        s.load();
-        s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
+/* THEME */
+function openTheme(){
+  const cards=Object.entries(THEMES).map(([k,t])=>`
+    <div class="theme-card tc-${k} ${S.currentTheme===k?'active':''}" onclick="selectTheme('${k}')">
+      <div class="active-chk">✓</div>
+      <span class="t-icon">${t.icon}</span>
+      <div class="t-name">${t.name}</div>
+      <div class="t-desc">${t.desc}</div>
+    </div>`).join('');
+  openModal(`<h2>🎨 Choose Theme</h2><div class="theme-grid">${cards}</div>
+    <p style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center">Theme changes the entire UI &amp; card visuals</p>`);
+}
+function selectTheme(k){applyTheme(k);openTheme();}
+
+/* LEVEL SELECT */
+function openLevelSelect(){renderLevelModal();}
+function renderLevelModal(){
+  const d=S.currentDiff,prog=S.levelProgress[d]||{};
+  const tabs=['easy','medium','hard'].map(x=>`
+    <button class="diff-tab ${x} ${d===x?'active':''}" onclick="setDiff('${x}')">
+      ${x.toUpperCase()}<br><small style="font-size:9px;opacity:.7">${x==='easy'?'2.0s':x==='medium'?'1.6s':'1.3s'} peek</small>
+    </button>`).join('');
+  let btns='';
+  for(let i=1;i<=40;i++){
+    const locked=!isUnlocked(i,d);
+    const st=prog[i]||0;
+    const sStr=st===3?'★★★':st===2?'★★☆':st===1?'★☆☆':'';
+    btns+=`<button class="lvl-btn${locked?' locked':''}${prog[i]?' completed':''}${i===S.currentLevel&&!locked?' cur':''}"
+      ${locked?'disabled':''} onclick="${locked?'':('startLevel('+i+')')}">
+      ${locked?'<span class="lock-ico">🔒</span>':'<span>'+i+'</span>'}
+      ${st?'<span class="lvl-stars">'+sStr+'</span>':''}
+    </button>`;
+  }
+  openModal(`<h2>⚡ Select Level</h2>
+    <div class="diff-tabs">${tabs}</div>
+    <div class="levels-grid">${btns}</div>
+    <p style="font-size:10px;color:var(--muted);margin-top:10px;text-align:center">🔒 Complete previous level to unlock · ★★★ = perfect clear</p>`);
+}
+function setDiff(d){S.currentDiff=d;saveS();renderLevelModal();}
+
+/* LEADERBOARD */
+function openScoreboard(){
+  const lb=[...S.leaderboard].sort((a,b)=>b.score-a.score).slice(0,20);
+  let rows='';
+  if(!lb.length){
+    rows=`<tr><td colspan="7" class="lb-empty">No scores yet — play to get on the board!</td></tr>`;
+  }else{
+    lb.forEach((e,i)=>{
+      const rc=i===0?'r1':i===1?'r2':i===2?'r3':'';
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+      const sStr='★'.repeat(e.stars||0)+'☆'.repeat(3-(e.stars||0));
+      rows+=`<tr>
+        <td><span class="lbr ${rc}">${medal}</span></td>
+        <td style="font-weight:600">${e.name}</td>
+        <td class="lbs">${e.score}</td>
+        <td>Lv.${e.level}</td>
+        <td class="lbst">${sStr}</td>
+        <td><span class="lbd ${e.diff}">${e.diff}</span></td>
+        <td style="color:var(--muted);font-size:10px">${e.time}s</td>
+      </tr>`;
     });
-
-    document.getElementById("menu").style.display = "none";
-    document.getElementById("victory-screen").style.display = "none";
-    players[0] = document.getElementById("p1").value || "Player 1";
-    players[1] = document.getElementById("p2").value || "Player 2";
-    scores = [0, 0];
-    turn = 0;
-    loadGame();
+  }
+  openModal(`<h2>🏆 Leaderboard</h2>
+    <div class="lb-wrap"><table class="lb-table">
+      <thead><tr><th>#</th><th>Player</th><th>Score</th><th>Level</th><th>Stars</th><th>Diff</th><th>Time</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <p style="font-size:10px;color:var(--muted);margin-top:8px;text-align:center">Best score per player per level is kept</p>`);
 }
 
-function loadGame(){
-    let size = difficulty;
-    if(selectedLevel > 10 && size < 6) size = 6;
-    if(selectedLevel > 20 && size < 8) size = 8;
+/* ===== GAME ENGINE ===== */
+let G={cards:[],fc:null,sc:null,lock:false,score:0,moves:0,matches:0,pairs:0,streak:0,bestStreak:0,timer:null,timeLeft:0,timeLimit:0,startTime:0,peekT:null};
 
-    const grid = document.getElementById("grid");
-    grid.style.gridTemplateColumns = `repeat(${size}, min(70px, 18vw))`;
+function startLevel(lvl){
+  closeModal();
+  S.currentLevel=lvl;saveS();
+  clearInterval(G.timer);clearTimeout(G.peekT);
+  const cfg=getLevelCfg(lvl,S.currentDiff);
+  Object.assign(G,{cards:[],fc:null,sc:null,lock:false,score:0,moves:0,matches:0,pairs:cfg.pairs,streak:0,bestStreak:0,timeLeft:cfg.timeLimit,timeLimit:cfg.timeLimit,startTime:0,peekT:null});
 
-    let pairCount = (size * size) / 2;
-    let selectedSymbols = symbols.slice(0, pairCount);
-    cards = [...selectedSymbols, ...selectedSymbols].sort(() => Math.random() - 0.5);
+  document.getElementById('home-screen').style.display='none';
+  document.getElementById('game-screen').classList.add('active');
+  document.getElementById('result-overlay').classList.remove('show');
 
-    grid.innerHTML = "";
-    cards.forEach(sym => {
-        let card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<div class="inner"><div class="front"></div><div class="back">${sym}</div></div>`;
-        card.onclick = () => flip(card, sym);
-        grid.appendChild(card);
-    });
-    updateUI();
+  document.getElementById('g-level').textContent=lvl+'/40';
+  document.getElementById('g-player').textContent=S.playerName;
+  document.getElementById('g-score').textContent='0';
+  document.getElementById('g-streak').textContent='0🔥';
+  document.getElementById('g-time').textContent=cfg.timeLimit+'s';
+  document.getElementById('timer-bar').style.width='100%';
+  buildGrid(cfg);
 }
 
-function flip(card, sym){
-    if(lockBoard || card.classList.contains("flipped")) return;
+function buildGrid(cfg){
+  const theme=THEMES[S.currentTheme];
+  const pool=[...theme.emojis].sort(()=>Math.random()-.5).slice(0,cfg.pairs);
+  const all=[...pool,...pool].sort(()=>Math.random()-.5);
+  const total=all.length;
+  const cols=total<=8?4:total<=12?4:total<=16?4:total<=20?5:6;
+  const grid=document.getElementById('card-grid');
+  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  grid.style.maxWidth=cols<=4?'400px':cols<=5?'520px':'640px';
+  grid.innerHTML='';G.cards=[];
 
-    playSound('flip'); 
-    card.classList.add("flipped");
-    flipped.push({card, sym});
+  all.forEach(emoji=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.dataset.emoji=emoji;
+    card.innerHTML=`<div class="card-inner">
+      <div class="card-face card-back-face"><span class="card-sym">✦</span></div>
+      <div class="card-face card-front-face">
+        <span>${emoji}</span>
+        <span class="card-lbl">${ENAMES[emoji]||''}</span>
+      </div>
+    </div>`;
+    card.addEventListener('click',()=>flipCard(card));
+    grid.appendChild(card);
+    G.cards.push(card);
+  });
 
-    if(flipped.length === 2){
-        lockBoard = true; 
-        setTimeout(checkMatch, 600);
-    }
+  // PEEK
+  const notice=document.getElementById('peek-notice');
+  notice.style.display='block';
+  G.cards.forEach(c=>c.classList.add('peeking'));
+  G.lock=true;
+  G.peekT=setTimeout(()=>{
+    G.cards.forEach(c=>c.classList.remove('peeking'));
+    notice.style.display='none';
+    G.lock=false;
+    G.startTime=Date.now();
+    startTimer(cfg.timeLimit);
+  },cfg.peekMs);
+}
+
+function flipCard(card){
+  if(G.lock||card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');
+  if(!G.fc){G.fc=card;return;}
+  if(G.fc===card)return;
+  G.sc=card;G.lock=true;G.moves++;
+  checkMatch();
 }
 
 function checkMatch(){
-    let [a, b] = flipped;
-    if(a.sym === b.sym){
-        playSound('match'); 
-        scores[turn]++;
-        flipped = [];
-        lockBoard = false;
-        if(document.querySelectorAll(".flipped").length === cards.length) endGame();
-    } else {
-        playSound('wrong'); 
-        setTimeout(() => {
-            a.card.classList.remove("flipped");
-            b.card.classList.remove("flipped");
-            flipped = [];
-            lockBoard = false;
-            if(mode === "multi") turn = (turn === 0) ? 1 : 0;
-            updateUI();
-        }, 400);
-    }
-    updateUI();
+  const a=G.fc,b=G.sc;
+  if(a.dataset.emoji===b.dataset.emoji){
+    G.matches++;G.streak++;
+    if(G.streak>G.bestStreak)G.bestStreak=G.streak;
+    const bonus=G.streak>1?G.streak*25:0;
+    G.score+=100+bonus;
+    if(G.streak>1)showCombo(G.streak,100+bonus);
+    a.classList.add('matched');b.classList.add('matched');
+    [a,b].forEach(c=>c.querySelector('.card-front-face').style.borderColor='var(--accent)');
+    resetPair();
+    updateHUD();
+    if(G.matches===G.pairs)setTimeout(winLevel,350);
+  }else{
+    G.streak=0;
+    updateHUD();
+    a.classList.add('wrong');b.classList.add('wrong');
+    setTimeout(()=>{
+      a.classList.remove('flipped','wrong');
+      b.classList.remove('flipped','wrong');
+      resetPair();
+    },950);
+  }
+}
+function resetPair(){G.fc=null;G.sc=null;G.lock=false;}
+function updateHUD(){
+  document.getElementById('g-score').textContent=G.score;
+  document.getElementById('g-streak').textContent=G.streak+'🔥';
 }
 
-function getHighScoreKey() {
-    return `mindflip_score_d${difficulty}_l${selectedLevel}`;
+function startTimer(limit){
+  clearInterval(G.timer);
+  const bar=document.getElementById('timer-bar');
+  bar.style.width='100%';
+  G.timer=setInterval(()=>{
+    G.timeLeft=Math.max(0,G.timeLeft-1);
+    document.getElementById('g-time').textContent=G.timeLeft+'s';
+    const pct=G.timeLeft/limit;
+    bar.style.width=(pct*100)+'%';
+    bar.style.background=pct>.5?'linear-gradient(90deg,var(--g1),var(--g2))':pct>.25?'linear-gradient(90deg,#ff9800,#ff2d78)':'linear-gradient(90deg,#ff2d78,#7b0020)';
+    if(G.timeLeft<=0){clearInterval(G.timer);loseLevel();}
+  },1000);
 }
 
-function endGame(){
-    playSound('win'); 
-    let winner = mode === "single" ? players[0] :
-        scores[0] > scores[1] ? players[0] :
-        scores[1] > scores[0] ? players[1] : "Draw";
+function winLevel(){
+  clearInterval(G.timer);
+  const elapsed=Math.round((Date.now()-G.startTime)/1000);
+  const timeBonus=Math.max(0,G.timeLeft*12);
+  const streakBonus=G.bestStreak*15;
+  const total=G.score+timeBonus+streakBonus;
+  const stars=calcStars(G.timeLeft,G.timeLimit,G.moves,G.pairs);
 
-    let isNewRecord = false;
-    if(mode === "single"){
-        let key = getHighScoreKey();
-        let prevBest = localStorage.getItem(key) || 0;
-        if(scores[0] > prevBest){
-            localStorage.setItem(key, scores[0]);
-            isNewRecord = true;
-        }
-    }
+  // Save progress
+  if(!S.levelProgress[S.currentDiff])S.levelProgress[S.currentDiff]={};
+  const prev=S.levelProgress[S.currentDiff][S.currentLevel]||0;
+  if(stars>prev)S.levelProgress[S.currentDiff][S.currentLevel]=stars;
 
-    setTimeout(() => {
-        const vicScreen = document.getElementById("victory-screen");
-        const winText = document.getElementById("winner-display");
-        const recordMsg = document.getElementById("record-msg");
-        winText.innerText = winner === "Draw" ? "🤝 It's a Draw!" : "🏆 " + winner + " Wins!";
-        recordMsg.innerText = isNewRecord ? "⭐ NEW PERSONAL BEST! ⭐" : "";
-        vicScreen.style.display = "flex";
-    }, 500);
+  // High score
+  const prevHs=S.highScores[S.playerName]||0;
+  const newHs=total>prevHs;
+  if(newHs)S.highScores[S.playerName]=total;
+
+  // Leaderboard — keep best per player+level+diff
+  S.leaderboard.push({name:S.playerName,score:total,level:S.currentLevel,diff:S.currentDiff,time:elapsed,streak:G.bestStreak,stars,date:Date.now()});
+  const seen={};
+  S.leaderboard=S.leaderboard.filter(e=>{
+    const k=`${e.name}|${e.level}|${e.diff}`;
+    if(!seen[k]||e.score>seen[k]){seen[k]=e.score;return true;}return false;
+  }).sort((a,b)=>b.score-a.score).slice(0,200);
+  saveS();updateHomeUI();spawnConfetti();
+
+  document.getElementById('r-title').className='result-title';
+  document.getElementById('r-title').textContent='✦ VICTORY!';
+  document.getElementById('r-sub').textContent='LEVEL '+S.currentLevel+' CLEARED';
+  document.getElementById('r-stars').textContent='⭐'.repeat(stars)+'🌑'.repeat(3-stars);
+  document.getElementById('r-score').textContent=total;
+  document.getElementById('r-time').textContent=elapsed+'s';
+  document.getElementById('r-moves').textContent=G.moves;
+  document.getElementById('r-streak').textContent=G.bestStreak;
+  document.getElementById('r-bonus').textContent='+'+timeBonus;
+  document.getElementById('r-newhs').style.display=newHs?'block':'none';
+  document.getElementById('btn-next').style.display=S.currentLevel<40?'':'none';
+  document.getElementById('result-overlay').classList.add('show');
 }
 
-function restartLevel(){
-    document.getElementById("victory-screen").style.display = "none";
-    scores = [0, 0];
-    turn = 0;
-    loadGame();
+function loseLevel(){
+  const elapsed=Math.round((Date.now()-G.startTime)/1000);
+  document.getElementById('r-title').className='result-title lose';
+  document.getElementById('r-title').textContent='⏰ TIME UP!';
+  document.getElementById('r-sub').textContent="YOU'VE GOT THIS — TRY AGAIN";
+  document.getElementById('r-stars').textContent='🌑🌑🌑';
+  document.getElementById('r-score').textContent=G.score;
+  document.getElementById('r-time').textContent=elapsed+'s';
+  document.getElementById('r-moves').textContent=G.moves;
+  document.getElementById('r-streak').textContent=G.bestStreak;
+  document.getElementById('r-bonus').textContent='+0';
+  document.getElementById('r-newhs').style.display='none';
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('result-overlay').classList.add('show');
 }
 
-function backToMenu(){
-    document.getElementById("victory-screen").style.display = "none";
-    document.getElementById("menu").style.display = "flex";
-    document.getElementById("grid").innerHTML = "";
-    document.getElementById("stats").innerHTML = "";
+function nextLevel(){if(S.currentLevel<40)startLevel(S.currentLevel+1);}
+function retryLevel(){startLevel(S.currentLevel);}
+function goHome(){
+  clearInterval(G.timer);clearTimeout(G.peekT);
+  document.getElementById('game-screen').classList.remove('active');
+  document.getElementById('home-screen').style.display='flex';
+  document.getElementById('result-overlay').classList.remove('show');
+  updateHomeUI();
 }
 
-function updateUI(){
-    const stats = document.getElementById("stats");
-    const turnDiv = document.getElementById("turn");
-
-    if(mode === "multi"){
-        turnDiv.innerText = players[turn] + "'s Turn";
-        stats.innerText = `${players[0]}: ${scores[0]} | ${players[1]}: ${scores[1]}`;
-    } else {
-        let best = localStorage.getItem(getHighScoreKey()) || 0;
-        turnDiv.innerText = "";
-        stats.innerHTML = `Score: ${scores[0]} <span style="opacity:0.4; font-size:0.85rem; margin-left:12px;">Best: ${best}</span>`;
-    }
+function spawnConfetti(){
+  const cols=['var(--g1)','var(--g2)','var(--g3)','#ffd700','#fff','#a3e635'];
+  for(let i=0;i<70;i++){
+    const el=document.createElement('div');
+    el.className='cfetti';
+    el.style.cssText=`left:${Math.random()*100}vw;background:${cols[i%cols.length]};animation-duration:${Math.random()*2.5+1.2}s;animation-delay:${Math.random()*.6}s;width:${Math.random()*9+4}px;height:${Math.random()*9+4}px;border-radius:${Math.random()>.5?'50%':'3px'};`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4000);
+  }
 }
+function showCombo(streak,pts){
+  const t=document.createElement('div');
+  t.className='combo-toast';
+  t.textContent=`${streak}× COMBO! +${pts}`;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),1200);
+}
+
+loadS();
 </script>
 </body>
 </html>
